@@ -1,0 +1,94 @@
+Шрифт и время
+loadkeys ru
+setfont cyr-sun16
+timedatectl set-ntp true
+
+разметка диска
+cfdisk /dev/sdc
+/dev/sdc1 = 500M - EFI
+/dev/sdc2 = 50GB -ROOT
+/dev/sdc3 = HOME
+
+Форматирование дисков
+mkfs.fat -F32 /dev/sdc1
+mkfs.ext4  /dev/sdc2
+mkfs.ext4 /dev/sdc3
+
+Монтирование дисков
+mount /dev/sdc2 /mnt
+mkdir /mnt/home
+mkdir -p /mnt/boot/efi
+mount /dev/sdc1 /mnt/boot/efi
+mount /dev/sdc3 /mnt/home
+
+Выбор зеркала
+nano /etc/pacman.d/mirrorlist - раскомментировать нужное
+
+Установка основы
+pacstrap /mnt base base-devel linux linux-firmware nano dhcpcd netctl zsh terminus-font
+
+Создание genfstab
+genfstab -U /mnt >> /mnt/etc/fstab
+
+chroot в систему
+arch-chroot /mnt
+
+Прописываем имя компьютера
+echo hostname > /etc/hostname
+
+Время
+ln -sf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+
+Добавление языков
+echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+echo "ru_RU.UTF-8 UTF-8" >> /etc/locale.gen 
+locale-gen
+
+Язык системы
+echo 'LANG="en_US.UTF-8"' > /etc/locale.conf
+
+Шрифт терминала
+echo 'KEYMAP=ru' >> /etc/vconsole.conf
+echo 'FONT=ter-v16n' >> /etc/vconsole.conf
+
+Загрузочный диск
+mkinitcpio -p linux
+
+Установка загрузчика
+pacman -Syy
+pacman -S grub efibootmgr amd-ucode --noconfirm 
+grub-install /dev/sdc
+
+Обновление grub.cfg
+grub-mkconfig -o /boot/grub/grub.cfg
+
+Добавление пользователя
+useradd -m -g users -G wheel -s /bin/zsh $username
+
+Установка root пароля
+passwd
+
+Установка пароля пользователя
+passwd $username
+
+SUDO
+echo '%wheel ALL=(ALL) ALL' >> /etc/sudoers
+
+
+# echo 'Раскомментируем репозиторий multilib Для работы 32-битных приложений в 64-битной системе.'
+# echo '[multilib]' >> /etc/pacman.conf
+# echo 'Include = /etc/pacman.d/mirrorlist' >> /etc/pacman.conf
+# pacman -Syy
+
+Ставим иксы и драйвера
+
+pacman -S sway kitty waybar wofi xorg-xwayland xorg-xlsclients qt5-wayland glfw-wayland gdm
+
+# mesa vulkan-radeon libva-mesa-driver openssh mesa-vdpau xf86-video-amdgpu
+
+
+Установка уау
+
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
