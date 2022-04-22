@@ -9,5 +9,10 @@ input type:keyboard {
    xkb_options grp:alt_shift_toggle
 }
 
+input type:pointer {
+    accel_profile adaptive
+    pointer_accel -0.5
+}
+
 #input * xkb_capslock enable
 #input * xkb_numlock enable
